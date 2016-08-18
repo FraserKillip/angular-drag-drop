@@ -1,19 +1,18 @@
-var Angular = require('angular');
+var angular = require('angular');
 
-require('./angular-drag-drop.less');
+// require('./angular-drag-drop.less');
 
-module.exports = 'filearts.dragDrop';
+module.exports = 'ngFastDrag';
 
-var mod = Angular.module(module.exports, []);
+var mod = angular.module(module.exports, []);
 
-
-mod.factory('dragContext', ['$rootElement', function($rootElement) {
+mod.factory('dragContext', ['$rootElement', function ($rootElement) {
     var context = {};
 
     return reset();
 
     function reset() {
-        return Angular.extend(context, {
+        return angular.extend(context, {
             data: null,
             reset: reset,
             start: start,
@@ -27,64 +26,66 @@ mod.factory('dragContext', ['$rootElement', function($rootElement) {
     }
 }]);
 
-mod.run(['$rootElement', '$timeout', function ($rootElement, $timeout) {
-    $rootElement[0].addEventListener('dragend', onDragEnd, true);
-    $rootElement[0].addEventListener('drop', onDrop, true);
-    
-    
-    function onDragEnd(event) {
-        clearDragActive();
-    }
-    
-    function onDrop(event) {
-        clearDragActive();
-    }
-    
-    function clearDragActive() {
-        $timeout(function () {
-            $rootElement.removeClass('drag-active');
-        });
-    }
-}]);
+// mod.run(['$rootElement', '$timeout', function ($rootElement, $timeout) {
+//     $rootElement[0].addEventListener('dragend', onDragEnd, true);
+//     $rootElement[0].addEventListener('drop', onDrop, true);
 
-mod.directive('dragContainer', ['$rootElement', '$parse', '$timeout', 'dragContext', function($rootElement, $parse, $timeout, dragContext) {
+
+//     function onDragEnd(event) {
+//         clearDragActive();
+//     }
+
+//     function onDrop(event) {
+//         clearDragActive();
+//     }
+
+//     function clearDragActive() {
+//         $timeout(function () {
+//             $rootElement.removeClass('drag-active');
+//         });
+//     }
+// }]);
+
+mod.directive('dragContainer', ['$rootElement', '$parse', '$timeout', 'dragContext', function ($rootElement, $parse, $timeout, dragContext) {
     return {
         restrict: 'A',
-        link: function($scope, $element, $attrs) {
+        link: function ($scope, $element, $attrs) {
             var onDragStart = $attrs.onDragStart ? $parse($attrs.onDragStart) : null;
             var onDragEnd = $attrs.onDragEnd ? $parse($attrs.onDragEnd) : null;
 
             $attrs.$addClass('drag-container');
 
-            $scope.$watch($attrs.dragContainer, function(draggable) {
+            $scope.$watch($attrs.dragContainer, function (draggable) {
                 $attrs.$set('draggable', typeof draggable === 'undefined' || draggable);
             });
 
-            $element.on('dragstart', handleDragStart);
-            $element.on('dragend', handleDragEnd);
+            if (onDragStart) $element.on('dragstart', handleDragStart);
+            if (onDragEnd) $element.on('dragend', handleDragEnd);
 
             function handleDragStart(e) {
+                e.preventDefault();
                 $timeout(function () {
                     $rootElement.addClass('drag-active');
                 }, 0, false);
-                
+
                 dragContext.start($attrs.dragData ? $scope.$eval($attrs.dragData) : $element);
                 $element.addClass('drag-container-active');
-                
+
                 if (onDragStart) {
                     var locals = {
                         $event: e,
                         $dragData: dragContext.data,
                     };
 
-                    $scope.$apply(function() {
+                    $scope.$apply(function () {
                         onDragStart($scope, locals);
                     });
                 }
             }
 
             function handleDragEnd(e) {
-                $timeout(function() {
+                e.preventDefault();
+                $timeout(function () {
                     $rootElement.removeClass('drag-active');
                 }, 0, false);
 
@@ -98,11 +99,11 @@ mod.directive('dragContainer', ['$rootElement', '$parse', '$timeout', 'dragConte
                     };
 
 
-                    $scope.$apply(function() {
+                    $scope.$apply(function () {
                         onDragEnd($scope, locals);
                     });
                 }
-                
+
                 if (dragContext.lastTarget) {
                     dragContext.lastTarget.$attrs.$removeClass('drag-over');
                 }
@@ -111,14 +112,14 @@ mod.directive('dragContainer', ['$rootElement', '$parse', '$timeout', 'dragConte
     };
 }]);
 
-mod.directive('dropContainer', ['$document', '$parse', '$window', 'dragContext', function($document, $parse, $window, dragContext) {
+mod.directive('dropContainer', ['$document', '$parse', '$window', 'dragContext', function ($document, $parse, $window, dragContext) {
     return {
         restrict: 'A',
         require: 'dropContainer',
         controller: 'DropContainerController',
         controllerAs: 'dropContainer',
-        link: function($scope, $element, $attrs, dropContainer) {
-            var acceptsFn = $attrs.dropAccepts ? $parse($attrs.dropAccepts) : function($scope, locals) {
+        link: function ($scope, $element, $attrs, dropContainer) {
+            var acceptsFn = $attrs.dropAccepts ? $parse($attrs.dropAccepts) : function ($scope, locals) {
                 return typeof locals.$dragData !== 'undefined';
             };
             var onDragEnter = $attrs.onDragEnter ? $parse($attrs.onDragEnter) : null;
@@ -128,10 +129,10 @@ mod.directive('dropContainer', ['$document', '$parse', '$window', 'dragContext',
 
             $attrs.$addClass('drop-container');
 
-            $element.on('dragover', handleDragOver);
-            $element.on('dragenter', handleDragEnter);
-            $element.on('dragleave', handleDragLeave);
-            $element.on('drop', handleDrop);
+            if (onDragOver) $element.on('dragover', handleDragOver);
+            if (onDragEnter) $element.on('dragenter', handleDragEnter);
+            if (onDragLeave) $element.on('dragleave', handleDragLeave);
+            if (onDrop) $element.on('drop', handleDrop);
 
             function handleDragEnter(e) {
                 if (dragContext.lastTarget && dragContext.lastTarget !== $element) {
@@ -154,7 +155,7 @@ mod.directive('dropContainer', ['$document', '$parse', '$window', 'dragContext',
                     $attrs.$addClass('drag-over');
 
                     if (onDragEnter) {
-                        $scope.$apply(function() {
+                        $scope.$apply(function () {
                             onDragEnter($scope, locals);
                         });
                     }
@@ -181,7 +182,7 @@ mod.directive('dropContainer', ['$document', '$parse', '$window', 'dragContext',
                     var y = e.pageY - pos.top;
                     var closestTarget = dropContainer.lastTarget;
 
-                    Angular.forEach(dropContainer.targets, function(dropTarget, anchor) {
+                    angular.forEach(dropContainer.targets, function (dropTarget, anchor) {
                         var anchorX = width / 2;
                         var anchorY = height / 2;
 
@@ -198,29 +199,29 @@ mod.directive('dropContainer', ['$document', '$parse', '$window', 'dragContext',
                         }
                     });
 
-                    $scope.$apply(function() {
+                    $scope.$apply(function () {
                         if (onDragOver) {
                             onDragOver($scope, locals);
                         }
-    
+
                         if (!closestTarget) return;
-    
+
                         if (closestTarget !== dropContainer.lastTarget) {
                             if (dropContainer.lastTarget) {
                                 $attrs.$removeClass('drop-container-' + dropContainer.lastTarget.anchor);
                             }
-    
+
                             $attrs.$addClass('drop-container-' + closestTarget.anchor);
-    
+
                             if (dropContainer.lastTarget) {
                                 dropContainer.lastTarget.handleDragLeave(e, locals);
                             }
-    
+
                             closestTarget.handleDragEnter(e, locals);
-    
+
                             dropContainer.lastTarget = closestTarget;
                         }
-    
+
                         closestTarget.handleDragOver(e);
                     });
                 }
@@ -234,18 +235,18 @@ mod.directive('dropContainer', ['$document', '$parse', '$window', 'dragContext',
                     $dragData: dragContext.data,
                 };
 
-                $scope.$apply(function() {
+                $scope.$apply(function () {
                     if (onDragLeave) {
                         onDragLeave($scope, locals);
                     }
-    
+
                     if (dropContainer.lastTarget) {
                         dropContainer.lastTarget.handleDragLeave(e, locals);
                     }
-    
+
                     if (dropContainer.lastTarget) {
                         $attrs.$removeClass('drop-container-' + dropContainer.lastTarget.anchor);
-    
+
                         dropContainer.lastTarget = null;
                     }
                 });
@@ -266,11 +267,11 @@ mod.directive('dropContainer', ['$document', '$parse', '$window', 'dragContext',
                     e.preventDefault();
                     dragContext.reset();
 
-                    $scope.$apply(function() {
+                    $scope.$apply(function () {
                         if (onDrop) {
                             onDrop($scope, locals);
                         }
-    
+
                         if (dropContainer.lastTarget) {
                             dropContainer.lastTarget.handleDrop(e, locals);
                         }
@@ -297,15 +298,15 @@ mod.directive('dropContainer', ['$document', '$parse', '$window', 'dragContext',
 
         var elemBCR = elem.getBoundingClientRect();
         return {
-            width: Math.round(Angular.isNumber(elemBCR.width) ? elemBCR.width : elem.offsetWidth),
-            height: Math.round(Angular.isNumber(elemBCR.height) ? elemBCR.height : elem.offsetHeight),
+            width: Math.round(angular.isNumber(elemBCR.width) ? elemBCR.width : elem.offsetWidth),
+            height: Math.round(angular.isNumber(elemBCR.height) ? elemBCR.height : elem.offsetHeight),
             top: Math.round(elemBCR.top + ($window.pageYOffset || $document[0].documentElement.scrollTop)),
             left: Math.round(elemBCR.left + ($window.pageXOffset || $document[0].documentElement.scrollLeft))
         };
     }
 }]);
 
-mod.controller('DropContainerController', [function() {
+mod.controller('DropContainerController', [function () {
     var dropContainer = this;
     var validAnchors = 'center top top-right right bottom-right bottom bottom-left left top-left'
         .split(' ');
@@ -313,7 +314,7 @@ mod.controller('DropContainerController', [function() {
     dropContainer.targets = {};
     dropContainer.lastTarget = null;
 
-    dropContainer.attach = function(dropTarget) {
+    dropContainer.attach = function (dropTarget) {
         var anchor = dropTarget.anchor;
 
         if (validAnchors.indexOf(anchor) < 0) {
@@ -325,7 +326,7 @@ mod.controller('DropContainerController', [function() {
         return dropTarget;
     };
 
-    dropContainer.detach = function(dropTarget) {
+    dropContainer.detach = function (dropTarget) {
         var anchor = dropTarget.anchor;
 
         if (validAnchors.indexOf(anchor) < 0) {
@@ -342,7 +343,7 @@ mod.controller('DropContainerController', [function() {
     };
 }]);
 
-mod.directive('dropTarget', ['$parse', 'dragContext', function($parse, dragContext) {
+mod.directive('dropTarget', ['$parse', 'dragContext', function ($parse, dragContext) {
     return {
         restrict: 'A',
         require: ['^dropContainer', 'dropTarget'],
@@ -350,9 +351,9 @@ mod.directive('dropTarget', ['$parse', 'dragContext', function($parse, dragConte
         bindToController: {
             anchor: '@dropTarget',
         },
-        controller: Angular.noop,
+        controller: angular.noop,
         controllerAs: 'dropTarget',
-        link: function($scope, $element, $attrs, ctls) {
+        link: function ($scope, $element, $attrs, ctls) {
             var dropContainer = ctls[0];
             var dropTarget = ctls[1];
 
@@ -365,28 +366,28 @@ mod.directive('dropTarget', ['$parse', 'dragContext', function($parse, dragConte
 
             dropContainer.attach(dropTarget);
 
-            var onDragEnter = dropTarget.$attrs.onDragEnter ? $parse(dropTarget.$attrs.onDragEnter) : Angular.noop;
-            var onDragLeave = dropTarget.$attrs.onDragLeave ? $parse(dropTarget.$attrs.onDragLeave) : Angular.noop;
-            var onDragOver = dropTarget.$attrs.onDragOver ? $parse(dropTarget.$attrs.onDragOver) : Angular.noop;
-            var onDrop = dropTarget.$attrs.onDrop ? $parse(dropTarget.$attrs.onDrop) : Angular.noop;
+            var onDragEnter = dropTarget.$attrs.onDragEnter ? $parse(dropTarget.$attrs.onDragEnter) : angular.noop;
+            var onDragLeave = dropTarget.$attrs.onDragLeave ? $parse(dropTarget.$attrs.onDragLeave) : angular.noop;
+            var onDragOver = dropTarget.$attrs.onDragOver ? $parse(dropTarget.$attrs.onDragOver) : angular.noop;
+            var onDrop = dropTarget.$attrs.onDrop ? $parse(dropTarget.$attrs.onDrop) : angular.noop;
 
-            dropTarget.handleDragEnter = function(e, locals) {
+            dropTarget.handleDragEnter = function (e, locals) {
                 onDragEnter(dropTarget.$scope, locals);
             };
 
-            dropTarget.handleDragLeave = function(e, locals) {
+            dropTarget.handleDragLeave = function (e, locals) {
                 onDragLeave(dropTarget.$scope, locals);
             };
 
-            dropTarget.handleDragOver = function(e, locals) {
+            dropTarget.handleDragOver = function (e, locals) {
                 onDragOver(dropTarget.$scope, locals);
             };
 
-            dropTarget.handleDrop = function(e, locals) {
+            dropTarget.handleDrop = function (e, locals) {
                 onDrop(dropTarget.$scope, locals);
             };
 
-            $scope.$on('$destroy', function() {
+            $scope.$on('$destroy', function () {
                 dropContainer.detach(dropTarget);
             });
         }
