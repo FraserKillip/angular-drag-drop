@@ -1,6 +1,6 @@
 {
   "name": "angular-fast-drag",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Dependency-free drag and drop support in Angular.js",
   "main": "./dist/angular-drag-drop.js",
   "scripts": {
