@@ -26,25 +26,25 @@ mod.factory('dragContext', ['$rootElement', function ($rootElement) {
     }
 }]);
 
-// mod.run(['$rootElement', '$timeout', function ($rootElement, $timeout) {
-//     $rootElement[0].addEventListener('dragend', onDragEnd, true);
-//     $rootElement[0].addEventListener('drop', onDrop, true);
+mod.run(['$rootElement', '$timeout', function ($rootElement, $timeout) {
+    $rootElement[0].addEventListener('dragend', onDragEnd, true);
+    $rootElement[0].addEventListener('drop', onDrop, true);
 
 
-//     function onDragEnd(event) {
-//         clearDragActive();
-//     }
+    function onDragEnd(event) {
+        clearDragActive();
+    }
 
-//     function onDrop(event) {
-//         clearDragActive();
-//     }
+    function onDrop(event) {
+        clearDragActive();
+    }
 
-//     function clearDragActive() {
-//         $timeout(function () {
-//             $rootElement.removeClass('drag-active');
-//         });
-//     }
-// }]);
+    function clearDragActive() {
+        $timeout(function () {
+            $rootElement.removeClass('drag-active');
+        });
+    }
+}]);
 
 mod.directive('dragContainer', ['$rootElement', '$parse', '$timeout', 'dragContext', function ($rootElement, $parse, $timeout, dragContext) {
     return {
@@ -59,8 +59,8 @@ mod.directive('dragContainer', ['$rootElement', '$parse', '$timeout', 'dragConte
                 $attrs.$set('draggable', typeof draggable === 'undefined' || draggable);
             });
 
-            if (onDragStart) $element.on('dragstart', handleDragStart);
-            if (onDragEnd) $element.on('dragend', handleDragEnd);
+            $element.on('dragstart', handleDragStart);
+            $element.on('dragend', handleDragEnd);
 
             function handleDragStart(e) {
                 e.preventDefault();
@@ -130,9 +130,9 @@ mod.directive('dropContainer', ['$document', '$parse', '$window', 'dragContext',
             $attrs.$addClass('drop-container');
 
             if (onDragOver) $element.on('dragover', handleDragOver);
-            if (onDragEnter) $element.on('dragenter', handleDragEnter);
-            if (onDragLeave) $element.on('dragleave', handleDragLeave);
-            if (onDrop) $element.on('drop', handleDrop);
+            $element.on('dragenter', handleDragEnter);
+            $element.on('dragleave', handleDragLeave);
+            $element.on('drop', handleDrop);
 
             function handleDragEnter(e) {
                 if (dragContext.lastTarget && dragContext.lastTarget !== $element) {
