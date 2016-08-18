@@ -1,15 +1,15 @@
 module.exports = {
     cache: true,
     entry: {
-        'angular-drag-drop': __dirname + "/src/angular-drag-drop.js",
+        'angular-fast-drag': __dirname + "/src/angular-fast-drag.js",
     },
     output: {
         libraryTarget: "umd",
-        library: "AngularDragDrop",
+        library: "AngularFastDrag",
         path: "./dist",
         pathInfo: false,
         // publicPath: "/static/",
-        filename: "angular-drag-drop.js",
+        filename: "angular-fast-drag.js",
     },
     externals: {
         'angular': 'angular',
